@@ -1,20 +1,19 @@
 import type { Options } from '@wdio/types'
 // import cucumberJson from 'wdio-cucumberjs-json-reporter';
-import SlackReporter from "@moroo/wdio-slack-reporter";
-import environment from './src/utils/environments.utils.js';
-import * as dotenv from 'dotenv';
+//import SlackReporter from "@moroo/wdio-slack-reporter";
+import { environment, ENV } from './src/utils/environments.utils.js';
 import { createRequire } from "module";
+import { testData, TestType, emailTests } from './src/utils/data/testData.js';
+import { API } from './src/utils/api/api.utils.js';
+import logout from './src/support/actions/common/logout.js';
+import createInbox from './src/utils/api/mailslurp/actions/createInbox.js';
+import clean from './src/utils/data/cleanup/clean.js';
 
-dotenv.config();
 const require = createRequire(import.meta.url);
 
 const allure = require('allure-commandline');
 
 const allureDir = './reports/allure';
-
-type EnvKey = keyof typeof environment;
-
-const ENV = process.env.ENV as EnvKey;
 
 if (!ENV || !['local', 'staging', 'prod'].includes(ENV)) {
   console.log(
@@ -22,6 +21,8 @@ if (!ENV || !['local', 'staging', 'prod'].includes(ENV)) {
   );
   process.exit();
 }
+
+export const testgql = environment[ENV].baseUrl
 
 const local = process.argv.includes('--local') ? 'LOCAL': '';
 const firefox = process.argv.includes('--firefox') ? 'FIREFOX' : '';
@@ -188,7 +189,7 @@ export const config: Options.Testrunner = Object.assign(
                   outputDir: allureDir + '/allure-results',
                   useCucumberStepReporter: true,
                   disableWebdriverStepsReporting: true,
-                  disableWebdriverScreenshotReporting: false
+                  disableWebdriverScreenshotReporting: true,
                 }
             ],
             [
@@ -198,33 +199,33 @@ export const config: Options.Testrunner = Object.assign(
                     language: 'en',
                 }
             ],
-            [
-                SlackReporter,
-                {
-                    slackOptions: {
-                        type: 'web-api',
-                        channel: process.env.SLACK_CHANNEL,
-                        slackBotToken: process.env.SLACK_BOT_TOKEN,
-                        filterForDetailResults: [
-                            'passed',
-                            'failed',
-                            'pending',
-                            'skipped'
-                          ],
-                    },
-                    notifyTestFinishMessage: true,
-                    useScenarioBasedStateCounts: true,
-                    emojiSymbols: {
-                        passed: ':white_check_mark:',
-                        failed: ':x:',
-                        skipped: ':double_vertical_bar:',
-                        pending: ':grey_question:',
-                        start: ':rocket:',
-                        finished: ':checkered_flag:',
-                        watch: ':stopwatch:'
-                    },
-                }
-            ]
+            // [
+            //     SlackReporter,
+            //     {
+            //         slackOptions: {
+            //             type: 'web-api',
+            //             channel: process.env.SLACK_CHANNEL,
+            //             slackBotToken: process.env.SLACK_BOT_TOKEN,
+            //             filterForDetailResults: [
+            //                 'passed',
+            //                 'failed',
+            //                 'pending',
+            //                 'skipped'
+            //               ],
+            //         },
+            //         notifyTestFinishMessage: true,
+            //         useScenarioBasedStateCounts: true,
+            //         emojiSymbols: {
+            //             passed: ':white_check_mark:',
+            //             failed: ':x:',
+            //             skipped: ':double_vertical_bar:',
+            //             pending: ':grey_question:',
+            //             start: ':rocket:',
+            //             finished: ':checkered_flag:',
+            //             watch: ':stopwatch:'
+            //         },
+            //     }
+            // ]
         ],
     
         //
@@ -321,8 +322,11 @@ export const config: Options.Testrunner = Object.assign(
          * @param {Array.<String>} specs        List of spec file paths that are to be run
          * @param {object}         browser      instance of created browser/device session
          */
-        // before: function (capabilities, specs) {
-        // },
+        before: async function () {
+          browser.maximizeWindow();
+          const token = (await API.catalystLogin()).data.login.token;
+          testData.setToken(token);
+        },
         /**
          * Runs before a WebdriverIO command gets executed.
          * @param {string} commandName hook command name
@@ -337,7 +341,7 @@ export const config: Options.Testrunner = Object.assign(
          * @param {string}                   uri      path to feature file
          * @param {GherkinDocument.IFeature} feature  Cucumber feature object
          */
-        // beforeFeature: function (uri, feature) {
+        // beforeFeature: function () {
         // },
         /**
          *
@@ -345,8 +349,30 @@ export const config: Options.Testrunner = Object.assign(
          * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
          * @param {object}                 context  Cucumber World object
          */
-        beforeScenario: function () {
-            browser.maximizeWindow();
+        beforeScenario: async function (world: any) {
+          const promises: any = [];
+          let testType;
+          let testValue = '';
+
+          world.pickle.tags.forEach(async (tag: any) => {
+            testType = (tag.name).slice(1);
+
+            if (Object.values(TestType).includes(testType)) {
+              if (emailTests.includes(testType)) {
+                promises.push(createInbox());
+                await Promise
+                .allSettled(promises)
+                .then((results) => results.forEach((result) => {
+                    if (result.status === 'fulfilled') {
+                      testValue = result.value;
+                    }
+                }))
+              }
+              testData.addData(browser.sessionId, testType, testValue);
+            } else {
+              console.log('ERROR WITH TEST TYPE TAG:', testType);
+            } 
+          })
         },
         /**
          *
@@ -368,8 +394,9 @@ export const config: Options.Testrunner = Object.assign(
          * @param {number}             result.duration  duration of scenario in milliseconds
          * @param {object}             context          Cucumber World object
          */
-        // afterStep: function (step, scenario, result, context) {
-        // },
+        afterStep: function () {
+          browser.takeScreenshot();
+        },
         /**
          *
          * Runs after a Cucumber Scenario.
@@ -380,8 +407,12 @@ export const config: Options.Testrunner = Object.assign(
          * @param {number}                 result.duration  duration of scenario in milliseconds
          * @param {object}                 context          Cucumber World object
          */
-        // afterScenario: function (world, result, context) {
-        // },
+        afterScenario: async function () {
+          if ((await browser.getNamedCookie('authToken')).value && !((await browser.getUrl()).includes('signup'))) {
+            await logout();
+            console.log('LOG OUT SUCCESS');
+          }
+        },
         /**
          *
          * Runs after a Cucumber Feature.
@@ -407,8 +438,9 @@ export const config: Options.Testrunner = Object.assign(
          * @param {Array.<Object>} capabilities list of capabilities details
          * @param {Array.<String>} specs List of spec file paths that ran
          */
-        // after: function (result, capabilities, specs) {
-        // },
+        after: async function () {
+          await clean();
+        },
         /**
          * Gets executed right after terminating the webdriver session.
          * @param {object} config wdio configuration object
@@ -426,28 +458,30 @@ export const config: Options.Testrunner = Object.assign(
          * @param {<Object>} results object containing test results
          */
         onComplete: function() {
-            const reportError = new Error('Could not generate Allure report');
-            const generation = allure([
-              'generate',
-              allureDir + '/allure-results',
-              '--clean',
-              '-o',
-              allureDir + '/allure-report'
-            ]);
-            return new Promise<void>((resolve, reject) => {
-              const generationTimeout = setTimeout(() => reject(reportError), 5000);
+          const reportError = new Error('Could not generate Allure report');
+
+          const generation = allure([
+            'generate',
+            allureDir + '/allure-results',
+            '--clean',
+            '-o',
+            allureDir + '/allure-report'
+          ]);
+
+          return new Promise<void>((resolve, reject) => {
+            const generationTimeout = setTimeout(() => reject(reportError), 5000);
         
-              generation.on('exit', function (exitCode: number) {
-                clearTimeout(generationTimeout);
+            generation.on('exit', function (exitCode: number) {
+              clearTimeout(generationTimeout);
         
-                if (exitCode !== 0) {
-                  return reject(reportError);
-                }
+              if (exitCode !== 0) {
+                return reject(reportError);
+              }
         
-                console.log('Allure report successfully generated');
-                resolve();
-              });
+              console.log('Allure report successfully generated');
+              resolve();
             });
+          });
         },
         /**
         * Gets executed when a refresh happens.

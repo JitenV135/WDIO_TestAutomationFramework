@@ -19,7 +19,7 @@
     "webdriverio": "^8.16.15"
   },
   "scripts": {
-    "local": "wdio run ./wdio.conf.ts --local",
+    "local": "NODE_TLS_REJECT_UNAUTHORIZED=0 wdio run ./wdio.conf.ts --local",
     "browserstack": "wdio run ./wdio.conf.ts --browserstack",
     "allure-report": "allure generate --clean ./reports/allure/allure-results - o ./reports/allure/allure-report && allure open"
   },

@@ -1,8 +1,4 @@
-import environment from "../../utils/environments.utils.js";
-
-type EnvKey = keyof typeof environment;
-
-const ENV = process.env.ENV as EnvKey;
+import { environment, ENV } from "../../utils/environments.utils.js";
 
 const openWebpage = async (value: string, type: 'page'|'site') => {
   let page;
@@ -14,7 +10,7 @@ const openWebpage = async (value: string, type: 'page'|'site') => {
       base = browser.options.baseUrl;
     }
       break;
-    case 'admin login': {
+    case 'admin panel login': {
       page = '/login';
       base = environment[ENV].adminUrl;
     }
