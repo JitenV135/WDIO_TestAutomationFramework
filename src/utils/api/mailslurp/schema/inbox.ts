@@ -1,4 +1,4 @@
-import { API } from "../api.utils";
+import { API } from "../../api.utils.js";
 
 export class Inbox extends API {
 

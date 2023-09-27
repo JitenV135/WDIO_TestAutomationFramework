@@ -1,4 +1,4 @@
-import { Inbox } from "../inbox.js";
+import { Inbox } from "../schema/inbox.js";
 
 const createInbox = async () => {
   const InboxAPI = new Inbox();

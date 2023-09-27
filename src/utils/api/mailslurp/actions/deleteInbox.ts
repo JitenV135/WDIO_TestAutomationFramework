@@ -1,4 +1,4 @@
-import { Inbox } from "../inbox.js";
+import { Inbox } from "../schema/inbox.js";
 
 const deleteInbox = async (inboxId: string) => {
   const InboxAPI = new Inbox();
