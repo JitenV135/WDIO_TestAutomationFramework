@@ -1,5 +1,3 @@
-import { API } from "../api/api.utils.js";
-
 export enum TestType {
   channelEmailInvite = 'channelEmailInvite',
   channelEmailSignup = 'channelEmailSignup',
