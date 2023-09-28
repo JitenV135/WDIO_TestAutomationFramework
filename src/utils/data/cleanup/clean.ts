@@ -4,15 +4,15 @@ import cleanInvite from "./actions/cleanInvite.js";
 const clean = async () => {
   const tests = testData.getAllData();
   console.log('TESTS:', tests);
-  tests.forEach(async (test) => {
+
+  for (let i = 0; i < tests.length; i++) {
     switch (true) {
-      case (inviteTests.includes(test.type)): {
-        const email = `${test.value}@mailslurp.com`;
-        const result = await cleanInvite(email);
-        console.log(test.type, 'ID CLEANED:', result);
+      case (inviteTests.includes(tests[i].type)): {
+        const email = `${tests[i].value}@mailslurp.com`;
+        await cleanInvite(email);
       }
     }
-  })
+  }
 }
 
 export default clean;

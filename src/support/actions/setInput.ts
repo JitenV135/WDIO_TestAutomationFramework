@@ -3,6 +3,7 @@ import { testData } from "../../utils/data/testData.js";
 const setInput = async (action: string, value: string, selector: string) => {
   let input;
   const sessionId = browser.sessionId;
+  const elementSelector = `*[data-testid='${selector}']`;
 
   switch(value) {
     case 'valid app admin parent email':
@@ -27,8 +28,10 @@ const setInput = async (action: string, value: string, selector: string) => {
       input = value;
   }
   const command = (action === 'add') ? 'addValue' : 'setValue';
+
   if (input) {
-    await $(`*[data-testid='${selector}']`)[command](input);
+    (await $(elementSelector)).waitForDisplayed();
+    await $(elementSelector)[command](input);
   }
 }
 

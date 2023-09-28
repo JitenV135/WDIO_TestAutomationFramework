@@ -18,8 +18,8 @@ export class Email extends API {
             `,
       variables: {
         inboxId: inboxId,
-        timeout: 5000,
-        unreadOnly: true,
+        timeout: 10000,
+        unreadOnly: false,
       }
     });
   }
