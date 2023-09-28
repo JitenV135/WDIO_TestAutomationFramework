@@ -4,7 +4,7 @@ import removeInvite from "../../../api/catalyst/actions/removeInvite.js";
 const cleanInvite = async (email: string) => {
   const inviteId = await getInviteId(email);
   const removedId = await removeInvite(inviteId);
-  return removedId;
+  console.log(cleanInvite.name.toUpperCase(), 'REMOVED ID:', removedId);
 }
 
 export default cleanInvite;
