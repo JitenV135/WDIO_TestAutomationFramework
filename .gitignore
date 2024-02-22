@@ -4,3 +4,4 @@ allure-report
 reports
 yarn.lock
 yarn-error.log
+.env
