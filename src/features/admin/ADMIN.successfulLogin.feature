@@ -1,4 +1,4 @@
-Feature: Logging in to the admin
+Feature: Login to the Admin Panel
 
   Scenario Outline: Login and land on the Organizations page
 

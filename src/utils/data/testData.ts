@@ -26,13 +26,22 @@ export const inviteTests = [
   TestType.memberEmailInvite,
 ]
 
+export const signupTests = [
+  TestType.channelEmailSignup,
+  TestType.memberEmailSignup,
+]
+
 class Data {
   private testData: { id: string, type: TestType, value: string | number }[];
   private testToken: string;
+  private totalScenarioCount: number;
+  private currentScenarioCount: number;
 
   constructor() {
     this.testData = [];
     this.testToken = '';
+    this.totalScenarioCount = 0;
+    this.currentScenarioCount = 0;
   }
 
   // Method to set an auth token for graphql
@@ -43,6 +52,22 @@ class Data {
   // Method to get the auth token for graphql
   getToken() {
     return this.testToken;
+  }
+
+  setTotalScenarioCount(count: number) {
+    this.totalScenarioCount = count;
+  }
+
+  getTotalScenarioCount() {
+    return this.totalScenarioCount;
+  }
+
+  updateCurrentScenarioCount() {
+    this.currentScenarioCount++
+  }
+
+  getCurrentScenarioCount() {
+    return this.currentScenarioCount;
   }
 
   // Method to add an object to the 'testData' array

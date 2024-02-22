@@ -10,6 +10,9 @@ const isEmailReceived = async () => {
     case (type === TestType.channelEmailInvite):
       value = 'You’ve been invited to join Proof';
       break;
+    case (type === TestType.memberEmailInvite):
+      value = 'You’ve been invited to join Proof';
+      break;
     default:
       value;
   }

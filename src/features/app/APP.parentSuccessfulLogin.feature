@@ -1,4 +1,4 @@
-Feature: Logging in to the app
+Feature: Login to the app
     
   Scenario Outline: Login and land on dashboard Home page
 

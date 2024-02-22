@@ -323,7 +323,6 @@ export const config: Options.Testrunner = Object.assign(
          * @param {object}         browser      instance of created browser/device session
          */
         before: async function () {
-          browser.maximizeWindow();
           const token = (await API.catalystLogin()).data.login.token;
           testData.setToken(token);
         },
@@ -341,8 +340,12 @@ export const config: Options.Testrunner = Object.assign(
          * @param {string}                   uri      path to feature file
          * @param {GherkinDocument.IFeature} feature  Cucumber feature object
          */
-        // beforeFeature: function () {
-        // },
+        beforeFeature: function (feature: any, uri: any) {
+          console.log('FEATURE', feature.elements);
+          console.log('URI TAG:', uri.tags[0].name);
+          console.log('URI SCENARIO COUNT:', uri.children.length);
+          testData.setTotalScenarioCount(uri.children.length);
+        },
         /**
          *
          * Runs before a Cucumber Scenario.
@@ -350,6 +353,8 @@ export const config: Options.Testrunner = Object.assign(
          * @param {object}                 context  Cucumber World object
          */
         beforeScenario: async function (world: any) {
+          browser.maximizeWindow();
+          console.log('SESSION ID:', browser.sessionId);
           const promises: any = [];
           let testType;
           let testValue = '';
@@ -414,6 +419,16 @@ export const config: Options.Testrunner = Object.assign(
           if ((await browser.getNamedCookie('authToken')).value && !((await browser.getUrl()).includes('signup'))) {
             await logout();
             console.log('LOG OUT SUCCESS');
+          }
+
+          testData.updateCurrentScenarioCount();
+
+          console.log('TOTAL COUNT', testData.getTotalScenarioCount());
+
+          console.log('NUMBER OF SCENARIOS COMPLETED:', testData.getCurrentScenarioCount());
+
+          if (testData.getCurrentScenarioCount() < testData.getTotalScenarioCount()) {
+            await browser.reloadSession();
           }
         },
         /**
