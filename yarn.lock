@@ -666,6 +666,13 @@
   dependencies:
     "@types/node" "^20.1.0"
 
+"@wdio/types@^8.36.0":
+  version "8.36.0"
+  resolved "https://registry.yarnpkg.com/@wdio/types/-/types-8.36.0.tgz#f11248178b1ef372c7f09bc9f2eace3966dca2ed"
+  integrity sha512-0hw/PaJHqDrbIMvU08w3oMDGg89udSkqWF2hFlGAjOc20quRrhn0F1L+NhFpYdezeRKz5gpgTDIqaQs9RWKq1A==
+  dependencies:
+    "@types/node" "^20.1.0"
+
 "@wdio/utils@8.16.11":
   version "8.16.11"
   resolved "https://registry.yarnpkg.com/@wdio/utils/-/utils-8.16.11.tgz#02be50d1ed4b8aea14c966fd0305e179c4cef4f5"
